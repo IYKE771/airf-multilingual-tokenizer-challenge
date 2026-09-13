@@ -1,6 +1,49 @@
 {
-  "generated_at": "2026-09-10T22:32:17+00:00",
-  "metric": "Average tokens per word plus a 100x unknown-token penalty, across Hausa, Swahili, Yoruba and Amharic. Lower is better.",
+  "generated_at": "2026-09-13T02:36:02+00:00",
+  "metric": "Average tokens per word plus a 100x unknown-token penalty, across Hausa, Swahili, Yoruba and Amharic, plus any amount by which English or French exceeds 1.15 times that average. Lower is better.",
   "repository": "aims-ai-research-foundations/airf-multilingual-tokenizer-challenge",
-  "entries": []
+  "entries": [
+    {
+      "rank": 1,
+      "team": "ethio-rica",
+      "slug": "ethio-rica",
+      "status": "ranked",
+      "score": 1.4426,
+      "fertility": 1.4347,
+      "unknown_rate": 0.0,
+      "guardrail_penalty": 0.0079,
+      "speed_chars_per_second": 1479803,
+      "vocab_size": 10000,
+      "evaluated_at": "2026-09-13T02:35:48+00:00",
+      "fertility_by_language": {
+        "en": 1.6081,
+        "fr": 1.6578,
+        "ha": 1.343,
+        "sw": 1.4855,
+        "yo": 1.3495,
+        "am": 1.5608
+      }
+    },
+    {
+      "rank": 2,
+      "team": "mk_team",
+      "slug": "mk_team",
+      "status": "ranked",
+      "score": 2.084,
+      "fertility": 2.084,
+      "unknown_rate": 0.0,
+      "guardrail_penalty": 0.0,
+      "speed_chars_per_second": 3917244,
+      "vocab_size": 10000,
+      "evaluated_at": "2026-09-13T02:35:48+00:00",
+      "fertility_by_language": {
+        "en": 1.9188,
+        "fr": 2.0235,
+        "ha": 1.7296,
+        "sw": 1.9173,
+        "yo": 2.103,
+        "am": 2.5859
+      }
+    }
+  ]
 }
