@@ -1,31 +1,10 @@
 {
-  "generated_at": "2026-09-13T02:36:02+00:00",
-  "metric": "Average tokens per word plus a 100x unknown-token penalty, across Hausa, Swahili, Yoruba and Amharic, plus any amount by which English or French exceeds 1.15 times that average. Lower is better.",
+  "generated_at": "2026-09-13T03:59:49+00:00",
+  "metric": "Average tokens per word plus a 100x unknown-token penalty, across Hausa, Swahili, Yoruba and Amharic, plus any amount by which English or French exceeds 1.15 times that average, plus 3x the share of rows the tokenizer fails to reconstruct exactly. Lower is better.",
   "repository": "aims-ai-research-foundations/airf-multilingual-tokenizer-challenge",
   "entries": [
     {
       "rank": 1,
-      "team": "ethio-rica",
-      "slug": "ethio-rica",
-      "status": "ranked",
-      "score": 1.4426,
-      "fertility": 1.4347,
-      "unknown_rate": 0.0,
-      "guardrail_penalty": 0.0079,
-      "speed_chars_per_second": 1479803,
-      "vocab_size": 10000,
-      "evaluated_at": "2026-09-13T02:35:48+00:00",
-      "fertility_by_language": {
-        "en": 1.6081,
-        "fr": 1.6578,
-        "ha": 1.343,
-        "sw": 1.4855,
-        "yo": 1.3495,
-        "am": 1.5608
-      }
-    },
-    {
-      "rank": 2,
       "team": "mk_team",
       "slug": "mk_team",
       "status": "ranked",
@@ -33,9 +12,10 @@
       "fertility": 2.084,
       "unknown_rate": 0.0,
       "guardrail_penalty": 0.0,
-      "speed_chars_per_second": 3917244,
+      "reconstruction": 1.0,
+      "speed_chars_per_second": 3864121,
       "vocab_size": 10000,
-      "evaluated_at": "2026-09-13T02:35:48+00:00",
+      "evaluated_at": "2026-09-13T03:59:31+00:00",
       "fertility_by_language": {
         "en": 1.9188,
         "fr": 2.0235,
@@ -43,6 +23,28 @@
         "sw": 1.9173,
         "yo": 2.103,
         "am": 2.5859
+      }
+    },
+    {
+      "rank": 2,
+      "team": "ethio-rica",
+      "slug": "ethio-rica",
+      "status": "ranked",
+      "score": 4.4426,
+      "fertility": 1.4347,
+      "unknown_rate": 0.0,
+      "guardrail_penalty": 0.0079,
+      "reconstruction": 0.0,
+      "speed_chars_per_second": 1468104,
+      "vocab_size": 10000,
+      "evaluated_at": "2026-09-13T03:59:31+00:00",
+      "fertility_by_language": {
+        "en": 1.6081,
+        "fr": 1.6578,
+        "ha": 1.343,
+        "sw": 1.4855,
+        "yo": 1.3495,
+        "am": 1.5608
       }
     }
   ]
