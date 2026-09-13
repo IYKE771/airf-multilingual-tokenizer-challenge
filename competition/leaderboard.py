@@ -10,7 +10,8 @@ from .evaluation import evaluate_submission
 
 FIELDS = [
     "rank", "team", "slug", "score", "fertility", "unknown_rate",
-    "speed_chars_per_second", "vocab_size", "status", "evaluated_at",
+    "guardrail_penalty", "speed_chars_per_second", "vocab_size", "status",
+    "evaluated_at",
     *[f"{language}_fertility" for language in LANGUAGES],
 ]
 
@@ -18,7 +19,8 @@ PUBLIC_REPOSITORY = "aims-ai-research-foundations/airf-multilingual-tokenizer-ch
 
 METRIC_SUMMARY = (
     "Average tokens per word plus a 100x unknown-token penalty, across Hausa, "
-    "Swahili, Yoruba and Amharic. Lower is better."
+    "Swahili, Yoruba and Amharic, plus any amount by which English or French "
+    "exceeds 1.15 times that average. Lower is better."
 )
 
 
@@ -48,7 +50,7 @@ def build_leaderboard(
                 evaluation_data,
                 benchmark_repeats=benchmark_repeats,
             )
-            if directory.name == "baseline":
+            if result["slug"] == "baseline":
                 baseline_seconds = result["elapsed_seconds"]
             elif baseline_seconds is not None:
                 budget = baseline_seconds * time_limit_multiple
@@ -63,6 +65,7 @@ def build_leaderboard(
                 "score": result["score"],
                 "fertility": _scored_mean(result["fertility"]),
                 "unknown_rate": _scored_mean(result["unknown_rate"]),
+                "guardrail_penalty": result["guardrail_penalty"],
                 "speed_chars_per_second": result["throughput"],
                 "vocab_size": result["vocab_size"],
                 "status": "baseline" if result["slug"] == "baseline" else "ranked",
@@ -114,7 +117,8 @@ def write_leaderboard(
         "# 🏆 Leaderboard",
         "",
         "Score is the average of tokens-per-word plus a 100x unknown-token "
-        "penalty, across Hausa, Swahili, Yoruba and Amharic. Lower is "
+        "penalty, across Hausa, Swahili, Yoruba and Amharic, plus any amount "
+        "by which English or French exceeds 1.15 times that average. Lower is "
         "better. Speed is informational.",
         "",
         "| Rank | Team | Score ↓ | Hausa | Swahili | Yoruba | Amharic | Speed ↑ | Vocabulary |",
@@ -156,6 +160,7 @@ def write_leaderboard_json(rows: list[dict], json_path: str | Path) -> None:
                 "score": round(float(row["score"]), 4),
                 "fertility": round(float(row["fertility"]), 4),
                 "unknown_rate": round(float(row["unknown_rate"]), 6),
+                "guardrail_penalty": round(float(row["guardrail_penalty"]), 4),
                 "speed_chars_per_second": int(row["speed_chars_per_second"]),
                 "vocab_size": int(row["vocab_size"]),
                 "evaluated_at": row["evaluated_at"],

@@ -44,7 +44,9 @@ automated check runs on every push to that branch, and nothing else triggers it:
 git checkout -b submission
 ```
 
-Then create one directory for your team, named in lowercase kebab case:
+Then create one directory for your team. Lowercase kebab case reads best,
+but the name is used exactly as you write it, so `mk_team` and `MK_Team`
+are both fine. Letters, digits, hyphens, underscores and dots only:
 
 ```text
 submissions/

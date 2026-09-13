@@ -223,29 +223,52 @@ def profile_submission(
             language: value + UNKNOWN_PENALTY * unknown_rate.get(language, 0.0)
             for language, value in fertility.items()
         }
-        score = sum(penalised[l] for l in SCORED_LANGUAGES) / len(SCORED_LANGUAGES)
         raw = sum(fertility[l] for l in SCORED_LANGUAGES) / len(SCORED_LANGUAGES)
         budget = raw * CONTEXT_FERTILITY_RATIO
-        breaches = [l for l in CONTEXT_LANGUAGES if fertility.get(l, 0.0) > budget]
+        overages = {
+            language: max(0.0, fertility.get(language, 0.0) - budget)
+            for language in CONTEXT_LANGUAGES
+        }
+        penalty = sum(overages.values())
+        score = sum(penalised[l] for l in SCORED_LANGUAGES) / len(SCORED_LANGUAGES)
         throughput, elapsed = _benchmark(tokenizer, rows, repeats=repeats)
 
-        checks["guardrail"] = not breaches
-        for language in breaches:
-            errors.append(
-                f"{LANGUAGE_NAMES[language]} fertility {fertility[language]:.3f} "
-                f"exceeds the guardrail of {budget:.3f}"
-            )
         report.update({
-            "score": score, "fertility": fertility, "unknown_rate": unknown_rate,
-            "penalised": penalised, "lossy_rows": lossy,
-            "guardrail_breaches": breaches, "throughput": throughput,
-            "elapsed_seconds": elapsed, "rows": len(rows),
+            "score": score + penalty, "fertility": fertility,
+            "unknown_rate": unknown_rate, "penalised": penalised,
+            "lossy_rows": lossy, "guardrail_budget": budget,
+            "guardrail_overages": overages, "guardrail_penalty": penalty,
+            "throughput": throughput, "elapsed_seconds": elapsed,
+            "rows": len(rows),
         })
 
     report["valid"] = bool(tokenizer) and all(checks.values()) and not errors
     if verbose:
         _print_report(report)
     return report
+
+
+def _print_guardrail(report: dict) -> None:
+    """Explain the English and French guardrail in terms of headroom or cost."""
+    budget = report["guardrail_budget"]
+    charged = {
+        language: value
+        for language, value in report["guardrail_overages"].items()
+        if value > 0.0
+    }
+    if charged:
+        for language, overage in charged.items():
+            print(f"  {LANGUAGE_NAMES[language]} is {overage:.3f} over the "
+                  f"{budget:.3f} guardrail, adding {overage:.3f} to your score")
+        return
+    worst = max(CONTEXT_LANGUAGES, key=lambda l: report["fertility"].get(l, 0.0))
+    value = report["fertility"].get(worst, 0.0)
+    headroom = (budget - value) / budget * 100 if budget else 0.0
+    print(f"  guardrail {budget:.3f}, highest is {LANGUAGE_NAMES[worst]} at "
+          f"{value:.3f} ({headroom:.1f}% headroom)")
+    if headroom < 5.0:
+        print("  warning: this is close to the limit and the hidden test set "
+              "differs slightly, so you may be charged there")
 
 
 def _print_report(report: dict) -> None:
@@ -258,7 +281,6 @@ def _print_report(report: dict) -> None:
         "file_size": "File size",
         "vocabulary": "Vocabulary",
         "encoding": "Encoding",
-        "guardrail": "English/French guardrail",
         "compatibility": "Compatibility",
     }
     for key, label in labels.items():
@@ -282,10 +304,13 @@ def _print_report(report: dict) -> None:
                   f"{report['fertility'][language]:>13.3f}"
                   f"{report['unknown_rate'][language]:>12.4f}"
                   f"{report['penalised'][language]:>9.3f}")
+        print(f"{_leader('Guardrail penalty')} {report['guardrail_penalty']:.4f}")
         print(f"{_leader('SCORE')} {report['score']:.4f}")
         print("  * scored languages")
+        _print_guardrail(report)
         if report["lossy_rows"]:
-            print(f"  note: {report['lossy_rows']:,} rows do not round trip exactly")
+            print(f"  note: {report['lossy_rows']:,} rows do not round trip exactly "
+                  "(informational, not scored)")
         print()
         print("Local benchmark (informational only)")
         elapsed = report["elapsed_seconds"]

@@ -88,7 +88,7 @@ Your final tokenizer must:
 * Have a vocabulary size of **10,000 tokens or fewer**.
 * Be **built by you** from the provided competition training data. No pretrained tokenizers, no external corpora, no third-party APIs or services.
 * Be submitted as a valid Hugging Face `tokenizer.json`.
-* Keep English and French within **1.15 times** your average score on the four target languages.
+* Anything by which English or French exceeds **1.15 times** your average score on the four target languages is added to your score.
 * Finish evaluation within **5 times** the time the character-level baseline takes on the same machine.
 * Pass the official submission checker.
 
@@ -169,9 +169,22 @@ So the objective is:
 
 ### English and French
 
-English and French are part of the training and evaluation data but are **not scored**. They act as a guardrail: neither may cost more than **1.15 times** your own average across the four target languages.
+English and French are part of the training and evaluation data but are **not scored
+directly**. They act as a guardrail. Each may reach **1.15 times** your own average
+across the four target languages at no cost. Anything above that is added to your
+score:
 
-This exists because without it the winning move is to drop English and French entirely. Doing that scores about 4% better on the four target languages while making French roughly 50% more expensive, which is not a multilingual tokenizer.
+$$\text{penalty} = \sum_{l \in \{en, fr\}} \max\left(0,\ F_l - 1.15 \cdot \bar{F}\right)$$
+
+where $\bar{F}$ is your average fertility across the four target languages.
+
+If both stay inside the limit the penalty is exactly zero and the guardrail has no
+effect on you at all. It is a cost, not a disqualification, so a submission that is
+slightly over is still scored and still ranked.
+
+This exists because without it the winning move is to drop English and French
+entirely. Measured on the competition data, doing that improves the four-language
+average by 0.089 but adds a penalty of 0.577, so it loses by a wide margin.
 
 ### Baselines
 
@@ -204,7 +217,7 @@ you sample the six languages while training.
    git checkout -b submission
    ```
 
-5. **Add one directory for your team**, named in lowercase kebab case, containing your `tokenizer.json` and a `metadata.yml` naming your team and members. An optional `README.md` can describe your approach.
+5. **Add one directory for your team**, named in lowercase kebab case, containing your `tokenizer.json` and a `metadata.yml` naming your team and members. An optional `README.md` can describe your approach. The directory name is used exactly as you write it, so keep it to letters, digits, hyphens, underscores and dots.
 
    ```text
    submissions/<team-name>/
@@ -238,7 +251,7 @@ Full pull request policy and the `metadata.yml` format are in [CONTRIBUTING.md](
 - [ ] My file is named `tokenizer.json` and loads with `tokenizers==0.22.1`.
 - [ ] It needs no custom code or external resources during evaluation.
 - [ ] I have checked my `[UNK]` rate, because each 1% adds 1.00 to my score.
-- [ ] English and French stay within 1.15 times my four-language average.
+- [ ] I have checked my guardrail penalty, which is zero while English and French stay within 1.15 times my four-language average.
 - [ ] It passes the official submission checker.
 - [ ] My team directory contains `tokenizer.json` and `metadata.yml`, and nothing else that is not allowed.
 - [ ] My changes are on a branch named `submission` and the automated check passed.
