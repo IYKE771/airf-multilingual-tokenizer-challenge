@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import statistics
 import time
+import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,6 +11,7 @@ from pathlib import Path
 from tokenizers import Tokenizer
 
 from .constants import (
+    RECONSTRUCTION_PENALTY,
     CONTEXT_FERTILITY_RATIO,
     CONTEXT_LANGUAGES,
     LANGUAGES,
@@ -32,6 +34,7 @@ class ScoreResult:
     penalised: dict[str, float]
     guardrail_penalty: float
     guardrail_overages: dict[str, float]
+    reconstruction: float
     token_counts: dict[str, int]
     word_counts: dict[str, int]
     unknown_tokens: int
@@ -46,6 +49,7 @@ class ScoreResult:
             "penalised": self.penalised,
             "guardrail_penalty": self.guardrail_penalty,
             "guardrail_overages": self.guardrail_overages,
+            "reconstruction": self.reconstruction,
             "token_counts": self.token_counts,
             "word_counts": self.word_counts,
             "unknown_tokens": self.unknown_tokens,
@@ -157,6 +161,37 @@ def guardrail_breaches(fertility: dict[str, float]) -> list[str]:
     ]
 
 
+def reconstruction_rate(tokenizer: Tokenizer, examples: list[Example]) -> float:
+    """Return the share of rows the tokenizer reconstructs exactly.
+
+    A row counts as reconstructed when ``decode(encode(text))`` equals the
+    original.
+    Three things are ignored before comparing, because none of them discards any
+    of the text:
+
+    * Unicode NFC, applied to both sides, so NFC normalisation is not penalised.
+    * Special tokens, since a ``[CLS]``/``[SEP]`` post-processor adds structure.
+    * Leading and trailing whitespace, since ``add_prefix_space=True`` prepends a
+      space rather than removing one.
+
+    Everything else counts as loss: folded case, stripped diacritics, deleted
+    punctuation, and whitespace removed from inside the text.
+    """
+    if not examples:
+        return 1.0
+    texts = [unicodedata.normalize("NFC", item.text) for item in examples]
+    encodings = tokenizer.encode_batch(texts)
+    reconstructed = sum(
+        1
+        for text, encoding in zip(texts, encodings)
+        if unicodedata.normalize(
+            "NFC", tokenizer.decode(encoding.ids, skip_special_tokens=True)
+        ).strip()
+        == text.strip()
+    )
+    return reconstructed / len(texts)
+
+
 def round_trip_failures(
     tokenizer: Tokenizer, examples: list[Example], *, limit: int = 5
 ) -> list[str]:
@@ -200,13 +235,17 @@ def score_tokenizer(
     )
     throughput, elapsed = benchmark(tokenizer, examples, repeats=benchmark_repeats)
     overages = guardrail_overages(fertility)
+    reconstruction = reconstruction_rate(tokenizer, examples)
     return ScoreResult(
-        score=competition_score(fertility, unknown_rate) + sum(overages.values()),
+        score=competition_score(fertility, unknown_rate)
+        + sum(overages.values())
+        + RECONSTRUCTION_PENALTY * (1.0 - reconstruction),
         fertility=fertility,
         unknown_rate=unknown_rate,
         penalised=penalised_scores(fertility, unknown_rate),
         guardrail_penalty=sum(overages.values()),
         guardrail_overages=overages,
+        reconstruction=reconstruction,
         token_counts=token_counts,
         word_counts=word_counts,
         unknown_tokens=sum(

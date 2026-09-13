@@ -9,7 +9,7 @@ notebook and run it on the ``tokenizer.json`` you are about to submit::
     profile_submission("tokenizer.json", data=validation)
 
 It applies the same rules as official evaluation: the vocabulary limit, the
-coverage requirement, the lossless round trip, and the English and French
+coverage requirement, exact reconstruction, and the English and French
 guardrail. Everything is local, so the file works unchanged in Google Colab,
 on Kaggle, or in a clone of the competition repository.
 """
@@ -17,6 +17,7 @@ on Kaggle, or in a clone of the competition repository.
 from __future__ import annotations
 
 import json
+import unicodedata
 import statistics
 import time
 from collections import defaultdict
@@ -39,6 +40,7 @@ LANGUAGE_NAMES = {
 SCORED_LANGUAGES = ("ha", "sw", "yo", "am")
 CONTEXT_LANGUAGES = ("en", "fr")
 CONTEXT_FERTILITY_RATIO = 1.15
+RECONSTRUCTION_PENALTY = 3.0
 UNKNOWN_PENALTY = 100.0
 MAX_VOCAB_SIZE = 10_000
 MAX_TOKENIZER_BYTES = 20 * 1024 * 1024
@@ -100,7 +102,9 @@ def _measure(
             unknowns[language] += sum(
                 1 for value in encoding.ids if value == unknown_id
             )
-        if tokenizer.decode(encoding.ids, skip_special_tokens=False) != text:
+        restored = tokenizer.decode(encoding.ids, skip_special_tokens=True)
+        if (unicodedata.normalize("NFC", restored).strip()
+                != unicodedata.normalize("NFC", text).strip()):
             lossy += 1
 
     fertility = {
@@ -233,10 +237,16 @@ def profile_submission(
         score = sum(penalised[l] for l in SCORED_LANGUAGES) / len(SCORED_LANGUAGES)
         throughput, elapsed = _benchmark(tokenizer, rows, repeats=repeats)
 
+        reconstruction = 1 - lossy / max(len(rows), 1)
+        reconstruction_penalty = RECONSTRUCTION_PENALTY * (1 - reconstruction)
+
         report.update({
-            "score": score + penalty, "fertility": fertility,
+            "score": score + penalty + reconstruction_penalty,
+            "fertility": fertility,
+            "reconstruction_penalty": reconstruction_penalty,
             "unknown_rate": unknown_rate, "penalised": penalised,
-            "lossy_rows": lossy, "guardrail_budget": budget,
+            "lossy_rows": lossy, "reconstruction": reconstruction,
+            "guardrail_budget": budget,
             "guardrail_overages": overages, "guardrail_penalty": penalty,
             "throughput": throughput, "elapsed_seconds": elapsed,
             "rows": len(rows),
@@ -305,12 +315,16 @@ def _print_report(report: dict) -> None:
                   f"{report['unknown_rate'][language]:>12.4f}"
                   f"{report['penalised'][language]:>9.3f}")
         print(f"{_leader('Guardrail penalty')} {report['guardrail_penalty']:.4f}")
+        print(f"{_leader('Reconstruction penalty')} "
+              f"{report['reconstruction_penalty']:.4f}")
         print(f"{_leader('SCORE')} {report['score']:.4f}")
         print("  * scored languages")
         _print_guardrail(report)
-        if report["lossy_rows"]:
-            print(f"  note: {report['lossy_rows']:,} rows do not round trip exactly "
-                  "(informational, not scored)")
+        print(f"  reconstruction {report['reconstruction'] * 100:.1f}%, "
+              f"charged {RECONSTRUCTION_PENALTY:g} x the share not reconstructed")
+        if report["reconstruction"] < 1.0:
+            print(f"  {report['lossy_rows']:,} of {report['rows']:,} rows are not "
+                  "reconstructed exactly, so some original text is lost")
         print()
         print("Local benchmark (informational only)")
         elapsed = report["elapsed_seconds"]

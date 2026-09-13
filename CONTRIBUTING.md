@@ -31,6 +31,7 @@ Your tokenizer must:
 - load with Hugging Face `tokenizers==0.22.1`;
 - have at most 10,000 entries by `get_vocab_size(with_added_tokens=True)`;
 - produce at least one token and a non-empty decode in all six languages;
+- restore the text it encodes, since anything lost is charged at 3x in the score;
 - need no external files, network access, or custom code;
 - be built by your own code from the provided training data, with no
   pretrained tokenizer, external corpus, or third-party API involved.

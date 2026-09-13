@@ -3,7 +3,7 @@ from pathlib import Path
 
 from tokenizers import Tokenizer, decoders, models, normalizers, pre_tokenizers, trainers
 
-from competition.constants import LANGUAGES
+from competition.constants import RECONSTRUCTION_PENALTY, LANGUAGES
 from competition.data import load_dataset
 
 from competition.leaderboard import build_leaderboard, write_leaderboard
@@ -23,6 +23,34 @@ def _fixture_tokenizer():
         initial_alphabet=pre_tokenizers.ByteLevel.alphabet(), show_progress=False,
     ), length=len(texts))
     return tokenizer
+
+
+def test_a_lossy_tokenizer_is_charged_for_what_it_deletes(tmp_path):
+    """A tokenizer that deletes text is ranked, but pays for the loss."""
+    submissions = tmp_path / "submissions"
+    shredder = submissions / "shredder"
+    shredder.mkdir(parents=True)
+
+    tokenizer = _fixture_tokenizer()
+    # Folding case and stripping accents lowers the token count without
+    # compressing anything, which is exactly what the floor exists to stop.
+    tokenizer.normalizer = normalizers.Sequence(
+        [normalizers.NFD(), normalizers.StripAccents(), normalizers.Lowercase()]
+    )
+    tokenizer.save(str(shredder / "tokenizer.json"))
+    (shredder / "metadata.yml").write_text(
+        "team: Shredder\nmembers:\n  - Test Person\n", encoding="utf-8")
+
+    rows, failures = build_leaderboard(
+        submissions, ROOT / "tests/fixtures/demo_public_test.csv", benchmark_repeats=1
+    )
+    assert failures == []
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["slug"] == "shredder"
+    # Stripping accents and folding case loses rows, so the penalty applies.
+    assert row["reconstruction"] < 1.0
+    assert row["score"] > RECONSTRUCTION_PENALTY * (1.0 - row["reconstruction"])
 
 
 def test_submission_to_all_leaderboard_formats(tmp_path):
@@ -76,9 +104,10 @@ def test_submission_to_all_leaderboard_formats(tmp_path):
     entry = ranked[0]
     assert set(entry) == {
         "rank", "team", "slug", "status", "score", "fertility", "unknown_rate",
-        "guardrail_penalty", "speed_chars_per_second", "vocab_size",
-        "evaluated_at", "fertility_by_language",
+        "guardrail_penalty", "reconstruction", "speed_chars_per_second",
+        "vocab_size", "evaluated_at", "fertility_by_language",
     }
     assert [entry["rank"] for entry in ranked] == [1, 2]
     assert entry["score"] > 0
+    assert 0.0 <= entry["reconstruction"] <= 1.0
     assert set(entry["fertility_by_language"]) == set(LANGUAGES)
