@@ -1,10 +1,32 @@
 {
-  "generated_at": "2026-09-15T06:11:10+00:00",
+  "generated_at": "2026-09-15T10:16:11+00:00",
   "metric": "Average tokens per word plus a 100x unknown-token penalty, across Hausa, Swahili, Yoruba and Amharic, plus any amount by which English or French exceeds 1.15 times that average, plus 3x the share of rows the tokenizer fails to reconstruct exactly. Lower is better.",
   "repository": "aims-ai-research-foundations/airf-multilingual-tokenizer-challenge",
   "entries": [
     {
       "rank": 1,
+      "team": "Maick Dane Nkou",
+      "slug": "maick-dane-nkou",
+      "status": "ranked",
+      "score": 1.9672,
+      "fertility": 1.9672,
+      "unknown_rate": 0.0,
+      "guardrail_penalty": 0.0,
+      "reconstruction": 1.0,
+      "speed_chars_per_second": 4697672,
+      "vocab_size": 10000,
+      "evaluated_at": "2026-09-15T10:15:49+00:00",
+      "fertility_by_language": {
+        "en": 2.0587,
+        "fr": 2.1586,
+        "ha": 1.7329,
+        "sw": 1.9567,
+        "yo": 1.8497,
+        "am": 2.3296
+      }
+    },
+    {
+      "rank": 2,
       "team": "ethio-rica",
       "slug": "ethio-rica",
       "status": "ranked",
@@ -13,9 +35,9 @@
       "unknown_rate": 0.0,
       "guardrail_penalty": 0.0,
       "reconstruction": 1.0,
-      "speed_chars_per_second": 4055071,
+      "speed_chars_per_second": 4010905,
       "vocab_size": 10000,
-      "evaluated_at": "2026-09-15T06:10:50+00:00",
+      "evaluated_at": "2026-09-15T10:15:49+00:00",
       "fertility_by_language": {
         "en": 2.0591,
         "fr": 2.1817,
@@ -26,7 +48,7 @@
       }
     },
     {
-      "rank": 2,
+      "rank": 3,
       "team": "Dekel DataSphere",
       "slug": "Dekel_datasphere",
       "status": "ranked",
@@ -35,9 +57,9 @@
       "unknown_rate": 0.0,
       "guardrail_penalty": 0.0,
       "reconstruction": 1.0,
-      "speed_chars_per_second": 2880860,
+      "speed_chars_per_second": 2829126,
       "vocab_size": 10000,
-      "evaluated_at": "2026-09-15T06:10:50+00:00",
+      "evaluated_at": "2026-09-15T10:15:49+00:00",
       "fertility_by_language": {
         "en": 1.9478,
         "fr": 1.9936,
@@ -48,7 +70,7 @@
       }
     },
     {
-      "rank": 3,
+      "rank": 4,
       "team": "mk_team",
       "slug": "mk_team",
       "status": "ranked",
@@ -57,9 +79,9 @@
       "unknown_rate": 0.0,
       "guardrail_penalty": 0.0,
       "reconstruction": 1.0,
-      "speed_chars_per_second": 3796117,
+      "speed_chars_per_second": 3791094,
       "vocab_size": 10000,
-      "evaluated_at": "2026-09-15T06:10:50+00:00",
+      "evaluated_at": "2026-09-15T10:15:49+00:00",
       "fertility_by_language": {
         "en": 1.9188,
         "fr": 2.0235,
@@ -67,28 +89,6 @@
         "sw": 1.9173,
         "yo": 2.103,
         "am": 2.5859
-      }
-    },
-    {
-      "rank": 4,
-      "team": "Maick Dane Nkou",
-      "slug": "maick-dane-nkou",
-      "status": "ranked",
-      "score": 4.7442,
-      "fertility": 1.7454,
-      "unknown_rate": 0.0,
-      "guardrail_penalty": 0.0,
-      "reconstruction": 0.0004,
-      "speed_chars_per_second": 5950764,
-      "vocab_size": 10000,
-      "evaluated_at": "2026-09-15T06:10:50+00:00",
-      "fertility_by_language": {
-        "en": 1.8062,
-        "fr": 1.9202,
-        "ha": 1.4693,
-        "sw": 1.6397,
-        "yo": 1.6549,
-        "am": 2.2175
       }
     }
   ]
