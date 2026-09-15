@@ -1,52 +1,86 @@
 # Maick Dane Nkou
 
-Individual entry — tokenizer `c41-lower-alph500-b3`.
+## Status: corrected training notebook, replacement model pending
 
-## Approach
+**The committed `tokenizer.json` is still the legacy `c41-lower-alph500-b3`
+artifact. It is not lossless. Do not submit it as the corrected model.**
 
-- Model: BPE with `[UNK]` as unknown token; vocabulary 10,000 / 10,000
-- Normalizer: NFC + lowercase
-- Alphabet: limited to the 500 most frequent train characters (`limit_alphabet`); the characters left out are still covered by the byte fallback, so no `[UNK]` appears
-- Pre-tokenizer: `WhitespaceSplit` — punctuation stays attached to its word, so no token is spent on isolated `,` `.` `)` …
-- Byte fallback: yes — the 256 `<0xXX>` tokens cover every possible UTF-8 character, so
-  no `[UNK]` can ever be emitted
-- Training corpus: official `train` split only, balanced round-robin over the six
-  languages with am/ha/sw/yo oversampled x3; no external corpus and no pre-trained tokenizer
-- Post-processor: none | Decoder: ByteFallback
-- Built with `tokenizers==0.22.1`
+The official corpus could not be downloaded in the repair environment because
+of a TLS connection failure to Hugging Face. No competition model was retrained
+there, and no new validation score is claimed. The notebook's disposable test
+models are never exported as submissions.
 
-## Results (official validation split, official metric)
+## Why the old score was misleading
 
-| Language | Fertility | UNK rate | Score |
-|---|---:|---:|---:|
-| English | 1.7828 | 0.000000 | 1.7828 |
-| French | 1.9107 | 0.000000 | 1.9107 |
-| Hausa | 1.4839 | 0.000000 | 1.4839 |
-| Swahili | 1.6548 | 0.000000 | 1.6548 |
-| Yoruba | 1.6535 | 0.000000 | 1.6535 |
-| Amharic | 2.1838 | 0.000000 | 2.1838 |
+The legacy model uses BPE, NFC + lowercase, WhitespaceSplit, and ByteFallback.
+Lowercasing loses case and this pre-tokenizer/decoder combination loses whitespace.
+Byte fallback avoids unknown tokens but cannot recover discarded information.
 
-- **Score (mean of ha, sw, yo, am): 1.7440** — baseline BPE 10k 2.0600, i.e. a gain of +0.3160 (15.3 %)
-- Context guardrail EN/FR: **PASS** (budget 2.0056, en 1.7828, fr 1.9107)
-- UNK emitted on validation: 0
-- Jaccard robustness (quality): 0.9645
+The supplied official-checker output on 24,000 validation rows reports:
 
-## Reproducibility
+| Component | Legacy result |
+| --- | ---: |
+| Base score (mean ha/sw/yo/am) | approximately 1.7440 |
+| English/French guardrail penalty | 0.0000 |
+| Reconstruction penalty | 2.9986 |
+| **Full validation score** | **4.7426** |
+| Rows not reconstructed exactly | 23,989 / 24,000 |
 
-- Dataset: `Similoluwa/african-multilingual-tokenizer-challenge` @ `v1.0.0`
-  (train 240,000 / validation 24,000, 40,000+4,000 per language)
-- Training data: official `train` split only — no external corpus, no pretrained
-  tokenizer, no third-party API
-- Metric: official `fertility + 100 × unk_rate`, averaged over ha/sw/yo/am;
-  guardrail `fertility(en,fr) ≤ 1.15 × mean(scored)` — all verified with the
-  challenge's own evaluation code
-- Environment: `tokenizers==0.22.1` (exact version required by the checker)
-- Rebuild: running `notebook.ipynb` end-to-end retrains this exact tokenizer
-  (config `c41-lower-alph500-b3`) and regenerates its reports
+The old 1.7440 figure was **not** the full score under reconstruction-aware
+scoring. Passing the file-validity checks does not remove this penalty.
+These are supplied results, not a new evaluation of the hidden test set.
 
-## Files
+## Corrected recipe
 
-- `tokenizer.json` — the submitted tokenizer
-- `metadata.yml` — team metadata
-- `notebook.ipynb` — the notebook that built this tokenizer (same training as `notebooks/05_train_c41_final.ipynb`, without the GitHub publishing cells)
-- `README.md` — this file
+`notebook.ipynb` now trains `lossless-bytelevel-b3` from scratch:
+
+- `tokenizers==0.22.1`, BPE, vocabulary 10,000, minimum frequency 5;
+- no normalizer: preserves case, diacritics, and original Unicode representation;
+- `ByteLevel(add_prefix_space=False, use_regex=True)` pre-tokenizer;
+- matching `ByteLevel` decoder;
+- all 256 byte-alphabet symbols included at training, no special tokens;
+- official `train` split only, balanced round-robin with ha/sw/yo/am repeated x3;
+- dataset `Similoluwa/african-multilingual-tokenizer-challenge` @ `v1.0.0`.
+
+No pretrained tokenizer, published vocabulary/merge table, or external corpus
+is used. Validation and synthetic regression examples never enter the final
+trainer. Changing only the old model's decoder is not a valid substitute for
+retraining.
+
+## Run and replace the submission
+
+1. Open this `notebook.ipynb` in Google Colab and run all cells (CPU is sufficient).
+2. The notebook downloads the official checker at commit
+   `75578f2400c39b1f8e31ce7e7104b37fbc470d11`, verifies its SHA-256, and loads
+   that exact module. It never silently falls back to a stale `utils.py`.
+3. It loads 240,000 training and 24,000 validation rows, trains a fresh model,
+   saves/reloads it, and checks exact reconstruction of every validation row.
+4. It evaluates with the pinned official checker, including **both** guardrail
+   and reconstruction penalties. Any reconstruction loss or unknown-token
+   emission blocks export even if the official file-validity flag is true.
+5. On success, retrieve `tokenizer.json`, `metadata.yml` and `README.md` from
+   `artifacts/lossless-bytelevel-b3/export/maick-dane-nkou/` (the notebook offers
+   downloads in Colab). Replace the three corresponding files in this team
+   directory and include the corrected notebook as `notebook.ipynb`.
+6. Review the generated **measured** validation results before submitting.
+   No particular fertility/guardrail score is guaranteed; BPE merge ties may
+   differ between training runs. Always check each generated artifact.
+
+Reports, helper modules, dataset caches, and test models belong under ignored
+`artifacts/`, not in the submission directory. Only the four permitted team
+files should be submitted. The original training notebook and artifact remain
+available in Git at `6a10f8b5db317e15ba14be6232440f72a4f6bae1` for provenance.
+
+## Regression coverage
+
+The notebook includes executable tests for all six languages, NFC/NFD text,
+case, punctuation, repeated/boundary whitespace, tabs, CR/LF, emoji, literal
+`[UNK]`/`[CLS]` text, controls, and unseen Unicode scalars. It verifies the
+serialized model and rejects deliberately broken lowercasing, prefix-space,
+WhitespaceSplit, and decoder configurations. Export-gate tests cover lossy
+but technically valid reports, missing penalties, incomplete evaluation,
+unknown tokens, and non-finite scores.
+
+Exact round-trip checks preserve every character, which is stricter than the
+pinned official reconstruction comparison (which tolerates NFC and boundary
+whitespace differences). The official rules may evolve after the checker pin.

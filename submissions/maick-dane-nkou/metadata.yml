@@ -2,6 +2,6 @@ team: Maick Dane Nkou
 members:
 - Maick Dane Nkou
 affiliation: AIMS SOUTH AFRICA
-approach: BPE 10k (NFC+lowercase, WhitespaceSplit, alph500, byte-fallback, zero UNK),
-  train split only, scored languages x3, validation 1.7440 (baseline 2.0600), EN/FR guardrail
-  PASS
+approach: Legacy BPE 10k (NFC+lowercase, WhitespaceSplit, byte-fallback), official train
+  only, scored languages x3. Supplied validation score including reconstruction penalty
+  4.7426. Lossless replacement notebook prepared; model retraining pending.
