@@ -1,7 +1,0 @@
-team: Maick Dane Nkou
-members:
-- Maick Dane Nkou
-affiliation: AIMS SOUTH AFRICA
-approach: Lossless byte-level BPE 10k, no normalization, full byte alphabet;
-  official train only, ha/sw/yo/am x3. Participant-reported validation 2.023252,
-  reconstruction 100%, zero UNK and guardrail penalty. Optimization search prepared.
