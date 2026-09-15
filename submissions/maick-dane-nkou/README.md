@@ -38,9 +38,47 @@ Official train only; no pretrained tokenizer or external corpus.
 
 ## Reproduce
 
-Run notebook.ipynb end-to-end in Colab. It loads the pinned own reference, trains
-seven candidates on official train only, tries two boundary adaptations, and compares
-the full validation score including penalties. It retains the reference if no eligible
-candidate improves it. Byte-level boundary definitions are in the notebook.
-The original reference training notebook is at commit 2805e5a52b1f9a859e871387ec71b952914f6ab3.
-BPE merge ties may differ across retraining runs. Evaluate every generated artifact.
+`notebook.ipynb` now follows the official starter's structure: Getting Started,
+Load the Dataset, Train the Final Tokenizer, Score the Tokenizer, Compare with
+Previous Experiments, Prepare Your Submission, Final Checklist, and References.
+It trains **only the selected `weights-yo-am4` recipe once**, from scratch on the
+public train split, rather than rerunning the seven-candidate search. The recipe,
+training weights and byte-level boundaries are unchanged.
+
+The original optimization notebook and submitted artifact are preserved at
+commit `17d34954a86e9baabb46658478ac7a0160e3a04d`. The earlier reference training
+notebook is at `2805e5a52b1f9a859e871387ec71b952914f6ab3`.
+
+Run the final notebook end-to-end in Colab or a prepared local kernel. It installs
+only missing dependencies, loads the official public train/validation splits,
+inspects the training distribution, trains the chosen recipe, reloads the saved
+model, and calls the pinned official `profile_submission` helper. The full score
+includes reconstruction and English/French guardrail penalties. Strict round-trip
+checks and our 5% guardrail-margin policy protect export; the margin is **not** an
+official validity requirement.
+
+Generated reports, caches and exports stay under ignored
+`artifacts/final-weights-yo-am4/`, not inside the team directory, even when the
+kernel starts in this directory. Review the newly measured results before
+replacing the current model with the exported `tokenizer.json`, `metadata.yml`
+and `README.md`. BPE merge ties may vary across retraining runs; the previous
+score and hash are not promised for a fresh run.
+
+**This notebook reorganization does not modify the submitted tokenizer or its
+recorded validation results above.** No complete retraining or 24,000-row
+re-evaluation was performed in the development workspace during this change.
+
+## Pull request checklist
+
+- Include only this team's four permitted files in the competition-entry diff.
+- Keep `tokenizer.json`, `metadata.yml`, `notebook.ipynb` and `README.md` together
+  in `submissions/maick-dane-nkou/`; no symlinks, archives or generated sidecars.
+- Target `main` of the official AIMS repository.
+- Do not change the workflows, starter notebook, evaluator, or leaderboard.
+
+The inspected official validation workflow checks the team directory and
+serialized tokenizer, then runs the evaluator contract tests. It does not
+execute the participant notebook or require the starter's exact layout. A
+`pull_request` affecting `submissions/**` triggers validation even if its source
+branch is not named `submission`; only the fork's push trigger is restricted to
+that name. GitHub approval/runner issues can still require organizer action.
