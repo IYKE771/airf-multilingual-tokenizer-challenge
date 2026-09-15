@@ -1,52 +1,36 @@
-# Maick Dane Nkou
+# Maick Dane Nkou — lossless BPE
 
-Individual entry — tokenizer `c41-lower-alph500-b3`.
+## Recipe
 
-## Approach
-
-- Model: BPE with `[UNK]` as unknown token; vocabulary 10,000 / 10,000
-- Normalizer: NFC + lowercase
-- Alphabet: limited to the 500 most frequent train characters (`limit_alphabet`); the characters left out are still covered by the byte fallback, so no `[UNK]` appears
-- Pre-tokenizer: `WhitespaceSplit` — punctuation stays attached to its word, so no token is spent on isolated `,` `.` `)` …
-- Byte fallback: yes — the 256 `<0xXX>` tokens cover every possible UTF-8 character, so
-  no `[UNK]` can ever be emitted
-- Training corpus: official `train` split only, balanced round-robin over the six
-  languages with am/ha/sw/yo oversampled x3; no external corpus and no pre-trained tokenizer
-- Post-processor: none | Decoder: ByteFallback
-- Built with `tokenizers==0.22.1`
-
-## Results (official validation split, official metric)
-
-| Language | Fertility | UNK rate | Score |
-|---|---:|---:|---:|
-| English | 1.7828 | 0.000000 | 1.7828 |
-| French | 1.9107 | 0.000000 | 1.9107 |
-| Hausa | 1.4839 | 0.000000 | 1.4839 |
-| Swahili | 1.6548 | 0.000000 | 1.6548 |
-| Yoruba | 1.6535 | 0.000000 | 1.6535 |
-| Amharic | 2.1838 | 0.000000 | 2.1838 |
-
-- **Score (mean of ha, sw, yo, am): 1.7440** — baseline BPE 10k 2.0600, i.e. a gain of +0.3160 (15.3 %)
-- Context guardrail EN/FR: **PASS** (budget 2.0056, en 1.7828, fr 1.9107)
-- UNK emitted on validation: 0
-- Jaccard robustness (quality): 0.9645
-
-## Reproducibility
-
+- weights-yo-am4: space_word boundaries, no normalizer or special tokens
+- BPE 10,000; minimum frequency 5; full byte alphabet; ByteLevel decoder
+- Official train only; balanced round-robin; ha/sw x2, yo/am x4, en/fr x1
 - Dataset: `Similoluwa/african-multilingual-tokenizer-challenge` @ `v1.0.0`
-  (train 240,000 / validation 24,000, 40,000+4,000 per language)
-- Training data: official `train` split only — no external corpus, no pretrained
-  tokenizer, no third-party API
-- Metric: official `fertility + 100 × unk_rate`, averaged over ha/sw/yo/am;
-  guardrail `fertility(en,fr) ≤ 1.15 × mean(scored)` — all verified with the
-  challenge's own evaluation code
-- Environment: `tokenizers==0.22.1` (exact version required by the checker)
-- Rebuild: running `notebook.ipynb` end-to-end retrains this exact tokenizer
-  (config `c41-lower-alph500-b3`) and regenerates its reports
+- No pretrained tokenizer, published vocabulary/merge table or external corpus
 
-## Files
+## Measured validation results (24,000 rows; not hidden-test scores)
 
-- `tokenizer.json` — the submitted tokenizer
-- `metadata.yml` — team metadata
-- `notebook.ipynb` — the notebook that built this tokenizer (same training as `notebooks/05_train_c41_final.ipynb`, without the GitHub publishing cells)
-- `README.md` — this file
+| Language | Tokens/word | UNK rate |
+| --- | ---: | ---: |
+| en | 2.028270 | 0.000000 |
+| fr | 2.137162 | 0.000000 |
+| ha | 1.751356 | 0.000000 |
+| sw | 1.973766 | 0.000000 |
+| yo | 1.839887 | 0.000000 |
+| am | 2.287749 | 0.000000 |
+
+- Base score: 1.963189
+- Guardrail penalty: 0.000000
+- Reconstruction penalty: 0.000000
+- **Full score: 1.963189**
+- Strict reconstruction: 100%
+- Tokenizer SHA-256: `1519895eace8680d2752b333f5efd82f80ade21bcd6210704ec17de55dafe035`
+- Official checker: `75578f2400c39b1f8e31ce7e7104b37fbc470d11`
+
+## Reproduce
+
+Run notebook.ipynb end-to-end. It follows the official starter flow and
+trains the selected recipe once, from scratch on train only, then checks
+the reloaded file on validation and exports measured results.
+The original optimization notebook is preserved at commit 17d34954a86e9baabb46658478ac7a0160e3a04d.
+BPE merge ties may vary across retraining runs; always evaluate the generated artifact.
