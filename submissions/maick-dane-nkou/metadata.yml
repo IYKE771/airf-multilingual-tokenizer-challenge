@@ -2,6 +2,6 @@ team: Maick Dane Nkou
 members:
 - Maick Dane Nkou
 affiliation: AIMS SOUTH AFRICA
-approach: Legacy BPE 10k (NFC+lowercase, WhitespaceSplit, byte-fallback), official train
-  only, scored languages x3. Supplied validation score including reconstruction penalty
-  4.7426. Lossless replacement notebook prepared; model retraining pending.
+approach: Lossless byte-level BPE 10k, no normalization, full byte alphabet;
+  official train only, ha/sw/yo/am x3. Participant-reported validation 2.023252,
+  reconstruction 100%, zero UNK and guardrail penalty. Optimization search prepared.
