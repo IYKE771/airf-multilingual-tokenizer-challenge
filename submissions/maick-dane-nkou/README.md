@@ -27,29 +27,31 @@
 - Tokenizer SHA-256: `1519895eace8680d2752b333f5efd82f80ade21bcd6210704ec17de55dafe035`
 - Official checker: `75578f2400c39b1f8e31ce7e7104b37fbc470d11`
 
-## Notebook: test the b4 candidate first
+## Notebook: train, evaluate and automatically export b4
 
-The committed model and measured results above remain **weights-yo-am4** and
-are unchanged. The notebook now defaults to a **weights-b4 trial**: ha/sw/yo/am
-x4, en/fr x1, with the same lossless space_word pipeline, 10,000 entries and
-minimum frequency 5. That recipe previously reported 1.939667 on validation;
-a fresh run must be evaluated rather than assumed to reproduce that score.
+The committed tokenizer and results above still describe **weights-yo-am4**;
+this notebook update alone does not replace its bytes or metadata.
 
-Run `notebook.ipynb` end-to-end to train the trial from scratch on official train
-only, then run the pinned official checker on all 24,000 validation rows. The
-extra 5% headroom policy is informational during this trial and does not stop
-evaluation. Any official EN/FR penalty remains part of the measured full score.
+Run `notebook.ipynb` end-to-end on CPU to train **weights-b4** from scratch:
+ha/sw/yo/am x4, en/fr x1, the same lossless space_word pipeline, 10,000 entries,
+minimum frequency 5. It uses the full 240,000-row official train split, then
+calls the hash-pinned official checker on all 24,000 validation rows.
+No uploaded tokenizer is needed and no diagnostic archive is produced.
 
-Results are saved under `artifacts/trial-weights-b4/` as `official_report.json`
-and `validation_report.json`. Export is disabled by default: inspect the result
-before setting `EXPORT_CANDIDATE = True` in the last cell. Even when enabled,
-export goes under artifacts and never automatically overwrites the submitted
-model. Generated metadata records the actual trained preset and measured score.
+The full score includes all official penalties. The historical 5% headroom
+policy is informational, not an export gate. After full validation, zero UNK,
+zero official penalties and strict reconstruction checks, Colab automatically
+downloads `tokenizer.json`, `metadata.yml` and `README.md`. A failed check stops
+export, without hiding the checker output. Allow multiple downloads if prompted.
 
-To reproduce the **currently submitted** recipe instead, set
-`RECIPE = "weights-yo-am4"` in the configuration cell before running all cells.
-The original optimization notebook is preserved at commit
-`17d34954a86e9baabb46658478ac7a0160e3a04d`; the prior final-recipe notebook is at
-`24e3cd6bc30da2f72f1ff4697c387a048b2f317a`.
-BPE merge ties may vary across retraining runs. No new b4 training or full
-validation result is claimed by this notebook update.
+Files are written under `artifacts/submission-weights-b4/export/maick-dane-nkou/`,
+not over the repository submission. The generated README includes the actual
+score, model SHA-256, data fingerprints and training time. There is no review-only
+switch or request to upload reports. Downloading is not a GitHub submission.
+
+The user's previous b4 runs measured 1.939666974 with 1.787199439% headroom.
+BPE merge ties can vary: a fresh score and file hash are measured, not assumed.
+To reproduce the currently committed recipe instead, set
+`RECIPE = "weights-yo-am4"` before running all cells.
+The separate optimization notebook is unchanged. No new full training or
+validation result is claimed by this code update.
