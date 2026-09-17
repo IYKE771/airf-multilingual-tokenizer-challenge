@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T22:09:17+00:00",
+  "generated_at": "2026-09-17T06:09:54+00:00",
   "metric": "Average tokens per word plus a 100x unknown-token penalty, across Hausa, Swahili, Yoruba and Amharic, plus any amount by which English or French exceeds 1.15 times that average, plus 3x the share of rows the tokenizer fails to reconstruct exactly. Lower is better.",
   "repository": "aims-ai-research-foundations/airf-multilingual-tokenizer-challenge",
   "entries": [
@@ -13,9 +13,9 @@
       "unknown_rate": 0.0,
       "guardrail_penalty": 0.0,
       "reconstruction": 1.0,
-      "speed_chars_per_second": 5608483,
+      "speed_chars_per_second": 5886763,
       "vocab_size": 10000,
-      "evaluated_at": "2026-09-16T22:09:01+00:00",
+      "evaluated_at": "2026-09-17T06:09:38+00:00",
       "fertility_by_language": {
         "en": 2.0044,
         "fr": 2.1067,
@@ -35,9 +35,9 @@
       "unknown_rate": 0.0,
       "guardrail_penalty": 0.0,
       "reconstruction": 1.0,
-      "speed_chars_per_second": 4807768,
+      "speed_chars_per_second": 4877241,
       "vocab_size": 10000,
-      "evaluated_at": "2026-09-16T22:09:01+00:00",
+      "evaluated_at": "2026-09-17T06:09:38+00:00",
       "fertility_by_language": {
         "en": 2.0933,
         "fr": 2.2163,
@@ -57,9 +57,9 @@
       "unknown_rate": 0.0,
       "guardrail_penalty": 0.0,
       "reconstruction": 1.0,
-      "speed_chars_per_second": 6250450,
+      "speed_chars_per_second": 6243898,
       "vocab_size": 10000,
-      "evaluated_at": "2026-09-16T22:09:01+00:00",
+      "evaluated_at": "2026-09-17T06:09:38+00:00",
       "fertility_by_language": {
         "en": 2.1443,
         "fr": 2.2022,
@@ -79,9 +79,9 @@
       "unknown_rate": 0.0,
       "guardrail_penalty": 0.0,
       "reconstruction": 1.0,
-      "speed_chars_per_second": 4194521,
+      "speed_chars_per_second": 4216048,
       "vocab_size": 10000,
-      "evaluated_at": "2026-09-16T22:09:01+00:00",
+      "evaluated_at": "2026-09-17T06:09:38+00:00",
       "fertility_by_language": {
         "en": 2.0591,
         "fr": 2.1817,
