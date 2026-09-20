@@ -1,0 +1,7 @@
+team: Maick Dane Nkou
+members:
+- Maick Dane Nkou
+affiliation: AIMS SOUTH AFRICA
+approach: Lossless BPE 10000, raw ByteLevel pieces (no whitespace split, merges cross
+  words), no normalization; official train only, raw-sw75-ha425-yo55-am55-fr128125;
+  validation 1.920497, reconstruction 100%.
